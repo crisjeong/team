@@ -1,0 +1,126 @@
+Release Notes
+Good Software – Cloud Suite
+Version: 3.2.0, Release Date: July 25, 2025
+Intended Audience: End Users, IT Admins, DevOps Teams, Implementation Partners
+Good Software – Cloud Suite
+Table of Contents
+About This Release ..................................................................................................................... 2
+Release Highlights...................................................................................................................... 2
+New Features ............................................................................................................................. 2
+Enhancements............................................................................................................................ 3
+Bug Fixes.................................................................................................................................... 3
+Deprecated Features .................................................................................................................. 3
+Known Issues............................................................................................................................. 4
+System Requirements ................................................................................................................ 4
+Upgrade Instructions.................................................................................................................. 5
+This content was exported from Confluence using Scroll PDF Exporter ....................................... 6
+i
+Good Software – Cloud Suite
+About This Release
+Version 3.2.0 of Good Software – Cloud Suite delivers significant improvements in platform 
+performance, user interface, and system security. This release introduces a brand-new workflow 
+builder, smarter dashboards, and enhanced logging and compliance capabilities.
+It also addresses a series of user-reported bugs and lays the groundwork for transitioning from 
+legacy features to newer, more scalable tools. This release is fully backward-compatible with version 
+3.1.x.
+Release Highlights
+This section summarizes the most impactful additions and changes in this release.
+ New Custom Workflow Builder – Visual editor to automate multi-step processes
+ Advanced SAML 2.0 SSO Support – Greater security and compliance for enterprise clients
+ Performance Optimizations – Faster API responses, reduced UI load time
+ Critical Bug Fixes – Stability improvements for all supported platforms
+ Feature Sunset Notices – Deprecation of legacy export and admin tools
+New Features
+The following features are now available in version 3.2.0. These are aimed at improving usability, 
+automation, and customization.
+Feature Description User Impact
+Custom 
+Workflow 
+Builder
+Create, modify, and deploy workflows using a drag-and-drop 
+UI. Supports triggers, conditions, and actions.
+Automates routine tasks 
+without code
+Role-Based 
+Dashboards
+Dashboards now display different widgets depending on the 
+user's role.
+Personalized insights, 
+better team segmentation
+Audit Log 
+Export
+Audit data can now be exported as CSV or JSON files. 
+Includes filtering and timestamp ranges.
+Supports compliance 
+audits and reporting
+Each new feature is accessible from the Admin Console or under your organization’s configuration 
+settings. Documentation and usage examples are available in the User Guide.
+2
+Good Software – Cloud Suite
+Enhancements
+This release improves existing functionality across the platform, particularly in terms of performance, 
+UI consistency, and security.
+Component Improvement
+REST API v2 Reduced average response time by 40%. Pagination added to bulk endpoints.
+UI/UX Consistent font usage, tighter layout spacing, and accessibility improvements (WCAG 
+2.1 compliance).
+Security OAuth 2.0 token expiration is now configurable. SAML sessions auto-terminate after 
+inactivity.
+Performance improvements will be most noticeable in data-heavy modules like reporting, API 
+integrations, and logs.
+Bug Fixes
+This section lists key issues resolved in this release. All fixes have been tested against supported 
+environments.
+ID Issue Summary Status
+#2348 Safari browser failed to initiate SSO login Resolved
+#2211 PDF export included broken footer links Resolved
+#2123 Firefox users could not click the workflow save button Resolved
+#2098 Reports with over 1000 rows timed out Resolved
+Refer to the internal JIRA board for the complete list of ~30 bug fixes not listed here.
+Deprecated Features
+The following features are scheduled for deprecation and will be fully removed in upcoming releases. 
+Users should begin planning migration strategies now.
+3
+Good Software – Cloud Suite
+Feature Feature Notes
+CSV Export Tool Deprecated Use JSON Export API going forward
+Legacy Admin UI Deprecated Hidden by default, will be removed in v3.4.0
+A detailed migration guide is available in the Admin Transition Hub.
+Known Issues
+The following known issues exist in this release. Fixes are planned for version 3.2.1 unless otherwise 
+noted.
+Issue Description Workaround
+Dashboard load delay Dashboards may take longer to load on 
+iOS Safari
+Use Chrome or Firefox on mobile
+LDAP sync logging issue Some sync logs do not appear in the 
+admin panel
+Logs are intact and accessible via 
+API
+Inline editing conflicts In rare cases, concurrent edits may not 
+save correctly
+Avoid simultaneous edits in shared 
+records
+System Requirements
+Ensure your system meets the following requirements before upgrading:
+Browsers Supported:
+ Google Chrome (latest)
+ Firefox ESR
+ Microsoft Edge 109+
+ Safari 14+
+Server Requirements:
+ OS: Ubuntu 22.04, RHEL 9, Windows Server 2019
+ Database: PostgreSQL 13+, MySQL 8
+ RAM: Minimum 8GB (16GB recommended)
+4
+Good Software – Cloud Suite
+ Java Runtime: Java 17+
+Upgrade Instructions
+Follow the steps below to upgrade your instance to version 3.2.0:
+1. Backup your environment – Ensure both the database and filesystem are backed up.
+2. Review deprecated features – Transition from deprecated tools like the CSV exporter.
+3. Run the Installer – Use the Upgrade Package from the admin panel.
+4. Post-upgrade checks – Run system diagnostics from the Admin Console > Health Check.
+Downtime is expected to be under 10 minutes for standard installations.
+5
+

@@ -1,106 +1,439 @@
-# 릴리스 노트
-**Good Software – Cloud Suite**
-**버전:** 3.2.0, **출시일:** 2025년 7월 25일
-**대상 독자:** 최종 사용자, IT 관리자, DevOps 팀, 구현 파트너
+# OCS-OHT 통신 제어 프로토콜 개발 명세서
 
-## 목차
-1. [이 릴리스에 대하여](#이-릴리스에-대하여)
-2. [릴리스 주요 사항](#릴리스-주요-사항)
-3. [새로운 기능](#새로운-기능)
-4. [개선 사항](#개선-사항)
-5. [버그 수정](#버그-수정)
-6. [지원 중단된 기능](#지원-중단된-기능)
-7. [알려진 문제](#알려진-문제)
-8. [시스템 요구 사항](#시스템-요구-사항)
-9. [업그레이드 지침](#업그레이드-지침)
+| 항목 | 내용 |
+|------|------|
+| **문서 번호** | OCS-OHT-COMM-SPEC-001 |
+| **버전** | 1.0 (Draft) |
+| **작성일** | 2026-03-09 |
+| **상태** | 심의 대기 |
 
 ---
 
-## 이 릴리스에 대하여
-Good Software – Cloud Suite의 버전 3.2.0은 플랫폼 성능, 사용자 인터페이스, 시스템 보안에 상당한 개선점을 제공합니다. 이번 릴리스에서는 새로운 워크플로우 빌더, 스마트 대시보드 및 향상된 로깅과 규정 준수 기능을 도입했습니다.
-또한 사용자가 보고한 일련의 버그를 해결하고 기존 기능을 최신 확장 가능한 도구로 전환하기 위한 토대를 마련했습니다. 이 릴리스는 버전 3.1.x와 완전히 하위 호환됩니다.
+## 1. 개요
 
-## 릴리스 주요 사항
-이 섹션에서는 이번 릴리스에서 가장 영향력 있는 추가 및 변경 사항을 요약합니다.
-- **새로운 사용자 정의 워크플로우 빌더** – 다단계 프로세스를 자동화할 수 있는 시각적 편집기
-- **고급 SAML 2.0 SSO 지원** – 엔터프라이즈 고객을 위한 강화된 보안 및 규정 준수
-- **성능 최적화** – 더 빠른 API 응답 시 및 UI 로드 시간 감소
-- **주요 버그 수정** – 지원되는 모든 플랫폼의 안정성 향상
-- **기능 종료 공지** – 기존 내보내기 및 관리자 도구의 지원 중단
+### 1.1 목적
 
-## 새로운 기능
-버전 3.2.0에서 다음 기능을 사용할 수 있습니다. 이러한 기능은 사용성, 자동화 및 커스터마이징을 개선하는 데 중점을 두었습니다.
+본 문서는 OCS(Overhead Control System)와 OHT(Overhead Hoist Transport) 간 통신 제어 프로토콜의 요구사항 및 개발 명세를 정의한다. 특히 **통신 안정성 확보**와 **Rail 합류부(Merge Point)에서의 OHT 간 물리적 충돌 방지**를 핵심 목표로 한다.
 
-| 기능 | 설명 | 사용자 영향 |
-| --- | --- | --- |
-| **사용자 정의 워크플로우 빌더** | 드래그 앤 드롭 UI를 사용하여 워크플로우를 생성, 수정 및 배포합니다. 트리거, 조건, 작업을 지원합니다. | 코드 없이 일상적인 작업 자동화 |
-| **역할 기반 대시보드** | 이제 대시보드에 사용자의 역할에 따라 각기 다른 위젯이 표시됩니다. | 개인화된 통찰력, 더 나은 팀 세분화 |
-| **감사 로그 내보내기** | 이제 감사 데이터를 CSV 또는 JSON 파일로 내보낼 수 있습니다. 필터링 및 타임스탬프 범위 지정이 포함됩니다. | 규정 준수 감사 및 보고서 지원 |
+### 1.2 적용 범위
 
-각 새로운 기능은 관리자 콘솔 또는 조직의 구성 설정에서 액세스할 수 있습니다. 자세한 문서 및 사용 예시는 사용 설명서(User Guide)를 참조하세요.
+| 구분 | 내용 |
+|------|------|
+| 적용 시스템 | OCS ↔ OHT 간 TCP 기반 바이너리 통신 |
+| 대상 기능 | 연결 동기화, 명령 전송, 재연결 복구 |
+| 제외 범위 | OHT 물리 제어(모터, 센서), Rail 레이아웃 관리 |
 
-## 개선 사항
-이번 릴리스에서는 성능, UI 일관성 및 보안 측면을 중심으로 플랫폼 전반의 기존 기능을 개선했습니다.
+### 1.3 용어 정의
 
-| 구성 부분 | 개선 사항 |
-| --- | --- |
-| **REST API v2** | 평균 응답 시간이 40% 감소했습니다. 대량(bulk) 엔드포인트에 페이지네이션이 추가되었습니다. |
-| **UI/UX** | 일관된 글꼴 사용, 조밀한 레이아웃 간격 맞춤, 접근성 개선(WCAG 2.1 준수). |
-| **보안** | 이제 OAuth 2.0 토큰 만료 시간을 설정할 수 있습니다. SAML 세션은 비활성 시 자동 종료됩니다. |
+| 용어 | 정의 |
+|------|------|
+| **OCS** | OHT 군을 통합 제어하는 상위 시스템 |
+| **OHT** | Rail 위를 주행하며 반송 작업을 수행하는 반송 장비 |
+| **Sync Flag** | 통신 메시지 내 양측의 제어 가능 여부를 나타내는 플래그 |
+| **Merge Point** | 복수의 Rail 경로가 합류하는 지점 — 충돌 위험 구간 |
+| **Stale 명령** | 통신 단절 이전에 발행되어 현재 상황에 유효하지 않은 명령 |
+| **Confirm** | 재연결 직후 OHT가 이동 명령의 유효성을 OCS에 재확인하는 절차 |
 
-성능 개선 사항은 보고서, API 통합 및 로그와 같이 데이터 부하가 큰 모듈에서 가장 눈에 띄게 확인할 수 있습니다.
+---
 
-## 버그 수정
-이 섹션에서는 이번 릴리스에서 해결된 주요 문제를 나열합니다. 모든 수정 사항은 지원되는 환경에서 테스트되었습니다.
+## 2. 요구사항 정의
 
-| ID | 문제 요약 | 상태 |
-| --- | --- | --- |
-| #2348 | Safari 브라우저에서 SSO 로그인이 작동하지 않음 | 해결됨 |
-| #2211 | PDF 내보내기 시 깨진 푸터 링크가 포함됨 | 해결됨 |
-| #2123 | Firefox 사용자가 워크플로우 저장 버튼을 클릭할 수 없음 | 해결됨 |
-| #2098 | 1000행이 넘는 보고서에서 타임아웃 발생 | 해결됨 |
+### 2.1 기능 요구사항
 
-여기에 나열되지 않은 약 30개의 버그 수정의 전체 목록은 내부 JIRA 보드를 참조하세요.
+| ID | 요구사항 | 목적 | 우선순위 |
+|----|---------|------|----------|
+| **FR-01** | 통신 연결 후 Sync Flag를 이용하여 상호 제어 가능 여부를 판단한다 | 양측 상태 동기화 보장, Half-Open 연결 방지 | 필수 |
+| **FR-02** | OCS→OHT 전송 모든 명령에 Timestamp를 포함한다 | 네트워크 지연에 의한 패킷 순서 역전(out-of-order) 방지 | 필수 |
+| **FR-03** | Disconnect→Connect 이후 OCS→OHT 이동 명령에 대해 OHT→OCS Confirm을 요청한다 | **Rail 합류부에서 OHT 간 물리적 충돌 방지** — stale 이동 명령이 실행될 경우 합류부 진입 타이밍이 어긋나 충돌 위험 | 필수 |
 
-## 지원 중단된 기능
-다음 기능은 향후 릴리스에서 완전히 제거될 예정입니다. 사용자는 지금 마이그레이션 전략을 세우기 시작해야 합니다.
+### 2.2 비기능 요구사항
 
-| 기능 | 참고 사항 |
-| --- | --- |
-| **CSV 내보내기 도구** | 지원 중단됨 (앞으로 JSON Export API 사용 권장) |
-| **기존 관리자 UI** | 지원 중단됨 (기본적으로 숨겨지며, v3.4.0에서 제거될 예정) |
+| ID | 요구사항 | 기준 |
+|----|---------|------|
+| **NFR-01** | Sync Handshake는 연결 후 일정 시간 내 완료되어야 한다 | Timeout 및 Retry 정책 별도 협의 |
+| **NFR-02** | Confirm 응답은 일정 시간 내 수신되어야 한다 | Timeout 정책 별도 협의 |
+| **NFR-03** | 통신 단절 시 OHT는 안전 정지(Safe Stop)를 수행한다 | 물리적 안전 최우선 |
 
-상세 마이그레이션 가이드는 Admin Transition Hub에서 확인할 수 있습니다.
+### 2.3 제약사항
 
-## 알려진 문제
-이번 릴리스에는 다음과 같은 알려진 문제가 존재합니다. 별도 공지가 없는 한 버전 3.2.1에서 수정될 예정입니다.
+| ID | 내용 |
+|----|------|
+| **CON-01** | 기존 바이너리 메시지 포맷의 Trailer 영역을 활용한다 (신규 필드 추가 최소화) |
+| **CON-02** | Sync Flag는 모든 메시지 타입에 공통 적용된다 |
+| **CON-03** | Timestamp는 OCS→OHT 방향 명령에만 적용된다 |
 
-| 문제 | 설명 | 해결 방법 |
-| --- | --- | --- |
-| **대시보드 로드 지연** | iOS Safari에서 대시보드 로드 시간이 더 오래 걸릴 수 있습니다. | 모바일에서는 Chrome 또는 Firefox 사용 |
-| **LDAP 동기화 로깅 문제** | 일부 동기화 로그가 관리자 패널에 나타나지 않습니다. | 로그는 정상 보존되어 있으며 API를 통해 접근 가능 |
-| **인라인 편집 충돌** | 드문 경우에 동시 편집이 올바르게 저장되지 않을 수 있습니다. | 공유된 레코드에서 동시 편집 금지 |
+---
 
-## 시스템 요구 사항
-업그레이드하기 전에 시스템이 다음 요구 사항을 충족하는지 확인하십시오.
+## 3. 인터페이스 명세
 
-**지원 브라우저:**
-- Google Chrome (최신 버전)
-- Firefox ESR
-- Microsoft Edge 109 이상
-- Safari 14 이상
+### 3.1 Sync Flag 정의
 
-**서버 요구 사항:**
-- OS: Ubuntu 22.04, RHEL 9, Windows Server 2019
-- 데이터베이스: PostgreSQL 13 이상, MySQL 8
-- RAM: 최소 8GB (16GB 권장)
-- Java 런타임: Java 17 이상
+| 항목 | 규격 |
+|------|------|
+| **위치** | 바이너리 메시지 끝에서 3번째 byte (Trailer 영역) |
+| **크기** | 1 byte |
+| **적용 범위** | 모든 메시지 타입에 공통 적용 |
 
-## 업그레이드 지침
-인스턴스를 버전 3.2.0으로 업그레이드하려면 아래 단계를 따르세요.
-1. **환경 백업** – 데이터베이스와 파일 시스템이 모두 백업되었는지 확인합니다.
-2. **지원 중단된 기능 검토** – CSV 내보내기 도구와 같이 지원 중단된 도구에서 전환합니다.
-3. **설치 프로그램 실행** – 관리자 패널에서 업그레이드 패키지를 사용합니다.
-4. **업그레이드 후 검사** – 관리자 콘솔 > 상태 확인(Health Check)에서 시스템 진단을 실행합니다.
+| 값 | 명칭 | 의미 | 사용 시점 |
+|----|------|------|----------|
+| `0x00` | **미사용** | Sync 절차와 무관한 메시지 | Heartbeat 등 일반 메시지 |
+| `0x01` | **Sync Fail** | 제어 불가 상태 | 연결 직후 초기값, 동기화 실패 시 |
+| `0x02` | **Sync** | 제어 가능 상태 | Sync Handshake 완료 후 |
 
-표준 설치의 경우 예상 다운타임은 10분 이내입니다.
+**`0x00`(미사용) 도입 배경:**
+
+운영 환경에서 **전체 OHT를 동시에 업데이트하는 것은 불가능**하다. Fab 내 수백~수천 대의 OHT가 운행 중이므로 S/W 업데이트는 순차적·단계적으로 진행된다. 이로 인해 동일 시점에 **업데이트된 OHT**와 **미업데이트 OHT**가 혼재하게 된다.
+
+| 구분 | syncFlag 값 | OCS 인식 |
+|------|------------|----------|
+| 미업데이트 OHT | 항상 `0x00` (Sync 로직 미탑재) | 기존 방식으로 제어 (Sync 절차 생략) |
+| 업데이트 OHT | `0x01` 또는 `0x02` | Sync 기반 제어 적용 |
+
+`0x00`을 도입함으로써 OCS는 수신 메시지의 syncFlag 값만으로 해당 OHT가 신규 프로토콜을 지원하는지 즉시 식별할 수 있으며, **단계적 전환(Rolling Update) 기간에도 기존 OHT와의 하위 호환성이 유지**된다.
+
+**Sync Flag 판단 로직:**
+
+| 수신 측 현재 상태 | 수신된 syncFlag | 판단 | 행동 |
+|------------------|----------------|------|------|
+| 임의 | `0x00` | Sync 미지원 OHT (미업데이트) | Sync 상태 변경 없이 기존 방식 처리 |
+| `0x01` (미동기화) | `0x02` | 상대방 Sync 완료 | SYNC_ACK(`0x02`) 응답 → 양측 Sync |
+| `0x02` (동기화) | `0x01` | 상대방 Sync 실패 | 자신도 `0x01`로 전환. 제어 명령 수신 거부 |
+| `0x02` (동기화) | `0x02` | 정상 | 명령 정상 처리 |
+
+### 3.2 바이너리 메시지 포맷
+
+```
+                 Binary Message Format (Big-Endian)
+
+Byte Offset:   0        2        10       14       14+N     N+14  N+15  N+16
+              ┌────────┬────────┬────────┬────────┬────────┬─────┬─────┬─────┐
+              │msgType │ times- │ cmdId  │confirm │payload │sync │ (2) │ (1) │
+              │        │  tamp  │        │Required│        │Flag │     │     │
+              │ 2 byte │ 8 byte │ 4 byte │ 1 byte │ N byte │1byte│     │     │
+              └────────┴────────┴────────┴────────┴────────┴─────┴─────┴─────┘
+                                                            ↑
+                                                     끝에서 3번째 byte
+```
+
+**필드 상세:**
+
+| 필드 | Offset | 크기 | 설명 |
+|------|--------|------|------|
+| `msgType` | 0 | 2 byte | 메시지 타입 식별자 |
+| `timestamp` | 2 | 8 byte | OCS 발행 시각 (epoch ms). OCS→OHT 명령에만 유효 |
+| `cmdId` | 10 | 4 byte | 명령 고유 식별자 |
+| `confirmRequired` | 14 | 1 byte | Confirm 필요 여부 (`0x00`=불필요, `0x01`=필요) |
+| `payload` | 15 | N byte | 메시지 타입별 가변 데이터 |
+| `syncFlag` | **끝-3** | 1 byte | `0x00`/`0x01`/`0x02` |
+
+### 3.3 Timestamp 순서 검증 규칙
+
+| 규칙 | 설명 |
+|------|------|
+| **비교 기준** | OHT는 `lastProcessedTimestamp` 값을 유지 |
+| **수락 조건** | 수신 `timestamp` > `lastProcessedTimestamp` |
+| **거부 조건** | 수신 `timestamp` ≤ `lastProcessedTimestamp` → **NACK (STALE_TIMESTAMP)** |
+| **갱신 시점** | 명령 수락(ACK) 시 `lastProcessedTimestamp` 갱신 |
+
+### 3.4 Confirm 프로토콜
+
+**적용 조건:** Disconnect → Reconnect → Sync 완료 직후, OCS가 전송하는 **이동 명령**에 한해 적용
+
+| 단계 | 방향 | 메시지 | 설명 |
+|------|------|--------|------|
+| 1 | OCS → OHT | `MOVE_CMD` (`confirmRequired=0x01`) | 이동 명령 전송 |
+| 2 | OHT → OCS | `CONFIRM_REQ` | 명령 유효성 재확인 요청 (OHT 현재 상태 포함) |
+| 3 | OCS → OHT | `CONFIRM_ACK` | 승인(`approved=true`) 또는 거부(`approved=false`) |
+| 4 | OHT | 내부 처리 | 승인 시 명령 실행, 거부 시 명령 폐기 |
+
+**OCS Confirm 검증 항목:**
+
+| # | 검증 항목 | 거부 사유 |
+|---|----------|----------|
+| 1 | 명령 ID(`cmdId`) 유효성 | `UNKNOWN_CMD` |
+| 2 | Timestamp 최신 여부 | `STALE_CMD` |
+| 3 | Rail 합류부 다른 OHT 충돌 여부 | `MERGE_CONFLICT` |
+| 4 | OHT 상태 적합성 (ALARM 등) | `OHT_STATE_INVALID` |
+
+---
+
+## 4. 프로토콜 시나리오
+
+### 4.1 정상 연결 및 Sync 절차
+
+```mermaid
+sequenceDiagram
+    participant OCS
+    participant OHT
+
+    Note over OCS,OHT: Phase 1: TCP Connection
+    OCS->>OHT: TCP Connect
+    OHT-->>OCS: TCP ACK
+    Note right of OHT: OHT 내부: syncFlag=0x01 (Sync Fail)
+
+    Note over OCS,OHT: Phase 2: Sync Handshake
+    OCS->>OHT: SYNC_REQ (syncFlag=0x02, timestamp=T1)
+    Note right of OHT: syncFlag=0x02 수신 → OCS Sync 완료 인식
+    OHT-->>OCS: SYNC_ACK (syncFlag=0x02, ohtState={position, status})
+    Note left of OCS: syncFlag=0x02 수신 → OHT Sync 완료 인식
+
+    Note over OCS,OHT: Phase 3: 정상 운영 (양측 syncFlag=0x02)
+    OCS->>OHT: MOVE_CMD (syncFlag=0x02, target=Bay3, timestamp=T2)
+    OHT-->>OCS: MOVE_ACK (syncFlag=0x02, status=ACCEPTED)
+    OHT-->>OCS: STATUS_REPORT (syncFlag=0x02, position=moving)
+    OHT-->>OCS: MOVE_COMPLETE (syncFlag=0x02, target=Bay3)
+```
+
+### 4.2 패킷 순서 역전 방어
+
+```mermaid
+sequenceDiagram
+    participant OCS
+    participant OHT
+
+    Note over OCS,OHT: 정상 시나리오
+    OCS->>OHT: CMD_A (timestamp=100)
+    OCS->>OHT: CMD_B (timestamp=200)
+    Note right of OHT: 100 < 200 → 순서 정상, 모두 처리
+
+    Note over OCS,OHT: 역전 시나리오 (네트워크 지연)
+    OCS->>OHT: CMD_C (timestamp=300)
+    OCS->>OHT: CMD_D (timestamp=400)
+    Note right of OHT: CMD_D(400) 먼저 도착
+    OHT-->>OCS: CMD_D ACK (ACCEPTED, timestamp=400)
+    Note right of OHT: CMD_C(300) 뒤늦게 도착
+    Note right of OHT: 300 < lastProcessed(400) → REJECT
+    OHT-->>OCS: CMD_C NACK (REJECTED, reason=STALE_TIMESTAMP)
+```
+
+### 4.3 Disconnect → Reconnect → Confirm 흐름 (Rail 합류부 충돌 방지)
+
+```mermaid
+sequenceDiagram
+    participant OCS
+    participant OHT
+
+    Note over OCS,OHT: 통신 단절 발생
+    OCS--xOHT: Connection Lost
+
+    Note over OHT: OHT: syncFlag → 0x01 (Sync Fail)<br/>현재 이동 중이면 → 안전 정지(SAFE_STOP)
+    Note over OCS: OCS: 해당 OHT syncFlag → 0x01 (Sync Fail)
+
+    Note over OCS,OHT: 재연결
+    OCS->>OHT: TCP Reconnect
+    OHT-->>OCS: TCP ACK
+    Note right of OHT: 연결만 됨, 아직 syncFlag=0x01 유지
+
+    Note over OCS,OHT: Re-Sync Handshake
+    OCS->>OHT: SYNC_REQ (syncFlag=0x02, timestamp=T10)
+    OHT-->>OCS: SYNC_ACK (syncFlag=0x02, ohtState={position, lastCmdTs})
+    Note over OCS,OHT: 양측 syncFlag=0x02 → 제어 가능
+
+    Note over OCS,OHT: 이동 명령 with Confirm (재연결 직후, Rail 합류부 충돌 방지)
+    OCS->>OHT: MOVE_CMD (syncFlag=0x02, target=MergePoint_A, timestamp=T11, confirmRequired=true)
+    OHT-->>OCS: CONFIRM_REQ (cmdId=MOVE_MergeA, timestamp=T11, ohtState=IDLE)
+
+    Note over OCS: OCS 검증:<br/>1. cmdId 유효성<br/>2. timestamp 최신 여부<br/>3. 합류부 다른 OHT와 충돌 여부 확인<br/>4. OHT 상태 적합성
+
+    OCS->>OHT: CONFIRM_ACK (cmdId=MOVE_MergeA, approved=true)
+    OHT-->>OCS: MOVE_ACK (syncFlag=0x02, status=ACCEPTED)
+
+    Note over OCS,OHT: Confirm 이후 → 정상 운영 모드 전환<br/>(이후 명령은 Confirm 불필요)
+```
+
+---
+
+## 5. 처리 흐름도
+
+### 5.1 OHT 메시지 수신 처리
+
+```mermaid
+flowchart TD
+    A[메시지 수신] --> B{TCP 연결 상태?}
+    B -->|Disconnected| Z[메시지 폐기]
+    B -->|Connected| C{"syncFlag 값 확인<br/>(끝에서 3번째 byte)"}
+    C -->|"0x00 (미사용)"| C2["Sync 무관 메시지 처리<br/>(Heartbeat 등)"]
+    C -->|"0x01 (Sync Fail)"| D{SYNC_REQ 메시지?}
+    D -->|Yes| E["Sync 처리 → SYNC_ACK 응답<br/>syncFlag=0x02 설정"]
+    D -->|No| Z2["제어 불가 → 메시지 폐기<br/>(syncFlag=0x01 상태)"]
+    C -->|"0x02 (Sync)"| F{Timestamp 검증}
+    F -->|"ts <= lastProcessedTs"| G[NACK: STALE_TIMESTAMP 응답]
+    F -->|"ts > lastProcessedTs"| H{명령 타입?}
+    H -->|일반 명령| I[명령 처리 → ACK 응답]
+    H -->|이동 명령| J{Confirm 필요?}
+    J -->|"No: 정상모드"| I
+    J -->|"Yes: 재연결 직후"| K[CONFIRM_REQ → OCS 전송]
+    K --> L{CONFIRM_ACK 수신?}
+    L -->|"approved=true"| I
+    L -->|"approved=false"| M[명령 취소 → NACK 응답]
+    L -->|Timeout| N[명령 취소 → TIMEOUT_NACK 응답]
+
+    style Z fill:#f66,stroke:#333
+    style Z2 fill:#f66,stroke:#333
+    style G fill:#f96,stroke:#333
+    style M fill:#f96,stroke:#333
+    style N fill:#f96,stroke:#333
+    style I fill:#6f6,stroke:#333
+    style C2 fill:#69f,stroke:#333
+```
+
+### 5.2 OCS Confirm 검증 처리
+
+```mermaid
+flowchart TD
+    A[CONFIRM_REQ 수신] --> B{cmdId 유효?}
+    B -->|No| C["CONFIRM_ACK: approved=false<br/>reason=UNKNOWN_CMD"]
+    B -->|Yes| D{timestamp 최신?}
+    D -->|"No: stale"| E["CONFIRM_ACK: approved=false<br/>reason=STALE_CMD"]
+    D -->|Yes| F2{"합류부 다른 OHT<br/>충돌 여부?"}
+    F2 -->|"충돌 위험"| F3["CONFIRM_ACK: approved=false<br/>reason=MERGE_CONFLICT"]
+    F2 -->|"안전"| F{OHT 상태 적합?}
+    F -->|"No: ALARM 등"| G["CONFIRM_ACK: approved=false<br/>reason=OHT_STATE_INVALID"]
+    F -->|Yes| H["CONFIRM_ACK: approved=true"]
+
+    style C fill:#f96,stroke:#333
+    style E fill:#f96,stroke:#333
+    style F3 fill:#f96,stroke:#333
+    style G fill:#f96,stroke:#333
+    style H fill:#6f6,stroke:#333
+```
+
+---
+
+## 6. 상태 전이
+
+### 6.1 OHT 통신 상태 모델
+
+```mermaid
+stateDiagram-v2
+    [*] --> DISCONNECTED
+
+    DISCONNECTED --> CONNECTING: TCP Connect 시도
+    CONNECTING --> SYNCING: TCP 연결 성공
+    CONNECTING --> DISCONNECTED: TCP 연결 실패
+
+    SYNCING --> CONFIRM_MODE: SYNC_ACK 수신 (재연결)
+    SYNCING --> NORMAL: SYNC_ACK 수신 (최초 연결)
+    SYNCING --> DISCONNECTED: SYNC Timeout (재시도 실패)
+
+    CONFIRM_MODE --> NORMAL: Confirm 완료 → 정상 모드 전환
+    CONFIRM_MODE --> DISCONNECTED: 통신 단절
+
+    NORMAL --> DISCONNECTED: 통신 단절
+    NORMAL --> NORMAL: 정상 명령 처리
+
+    DISCONNECTED --> CONNECTING: 재연결 시도 (Backoff)
+```
+
+### 6.2 상태별 허용 동작
+
+| 상태 | Sync Flag | 허용 동작 | 비고 |
+|------|-----------|----------|------|
+| **DISCONNECTED** | — | TCP 연결 시도만 가능 | OHT: 이동 중이었다면 Safe Stop |
+| **CONNECTING** | — | TCP Handshake 대기 | — |
+| **SYNCING** | `0x01` | SYNC_REQ/ACK 교환만 가능 | 제어 명령 수신 거부 |
+| **CONFIRM_MODE** | `0x02` | 이동 명령은 Confirm 필수 | 일반 명령은 즉시 처리 |
+| **NORMAL** | `0x02` | 모든 명령 즉시 처리 | 정상 운영 |
+
+---
+
+## 7. 이상 처리 (Abnormal Handling)
+
+### 7.1 통신 단절 시 동작
+
+| 주체 | 동작 | 상세 |
+|------|------|------|
+| **OHT** | 즉시 Safe Stop | 이동 중이었다면 감속 → 정지. syncFlag → `0x01` |
+| **OCS** | 해당 OHT 상태를 Sync Fail로 전환 | 해당 OHT로의 명령 발행 중단. 합류부 스케줄링에서 제외 |
+
+### 7.2 패킷 순서 역전 시 동작
+
+| 조건 | OHT 동작 | OCS 후속 처리 |
+|------|---------|--------------|
+| 수신 `timestamp` ≤ `lastProcessedTimestamp` | NACK (`STALE_TIMESTAMP`) 응답 | 해당 명령 폐기. 필요 시 재발행 |
+
+### 7.3 Confirm 실패 시 동작
+
+| 상황 | OHT 동작 | OCS 후속 처리 |
+|------|---------|--------------|
+| `approved=false` (MERGE_CONFLICT) | 이동 명령 폐기. 현재 위치 유지 | 합류부 안전 확보 후 명령 재발행 |
+| `approved=false` (OHT_STATE_INVALID) | 이동 명령 폐기 | OHT 상태 정상화 후 재발행 |
+| Confirm Timeout (응답 없음) | 이동 명령 폐기 → TIMEOUT_NACK 전송 | 통신 상태 확인 후 재발행 |
+
+---
+
+## 8. 심의 확인 사항
+
+> [!IMPORTANT]
+> 아래 항목은 개발 착수 전 고객과의 심의에서 **반드시** 합의되어야 하는 사항입니다.
+
+### 8.1 설계 검토에서 식별된 이슈
+
+| # | 이슈 | 영향도 | 권고안 | 심의 결과 |
+|---|------|--------|--------|----------|
+| I-1 | **Timestamp만으로는 동일 밀리초 내 복수 명령의 순서 구분 불가** | 중 | Monotonic Sequence Number를 Timestamp와 병용 (`{timestamp, seqNo}` 복합 키) | |
+| I-2 | **Confirm 모드 해제 조건 미정의** — 무한 유지 시 성능 저하, 조기 해제 시 안전성 약화 | 고 | 재연결 후 첫 이동 명령만 Confirm 적용 (First-Command 방식) | |
+| I-3 | **Sync Timeout 미정의** — SYNC_ACK 미수신 시 무한 대기 위험 | 고 | Timeout + Retry + 실패 시 재연결 | |
+| I-4 | **Confirm Timeout 미정의** — CONFIRM_ACK 미수신 시 OHT 멈춤 위험 | 고 | Timeout 후 자동 명령 취소 + TIMEOUT_NACK | |
+| I-5 | **Disconnect 시 OHT 안전 정지 정책 상세 미정의** | 최고 | Safe Stop (감속→정지) 정책 명문화 필수 | |
+
+**이슈별 사례 시나리오:**
+
+> **I-1 사례 — 동일 ms 내 MOVE/STOP 역전**
+>
+> OCS가 OHT-017에 `MOVE_CMD(ts=1710000000000)` 직후 긴급 `STOP_CMD(ts=1710000000000)`를 발행한다. 네트워크 지연으로 STOP이 먼저 도착하면 OHT는 STOP 처리 후 뒤늦게 도착한 MOVE를 **같은 timestamp이므로 순서 판단 불가** → MOVE를 수락하여 의도하지 않은 주행이 시작된다. Sequence Number가 있었다면 `STOP(seq=102)` > `MOVE(seq=101)` 비교로 MOVE를 거부할 수 있다.
+
+> **I-2 사례 — Confirm 모드 무한 유지로 인한 운행 지연**
+>
+> OHT-042가 재연결 후 Confirm 모드에 진입한다. 해제 조건이 없어 이후 모든 이동 명령마다 OCS와 Confirm 왕복이 발생한다. 특히 고밀도 Bay 구간에서 초당 수 회의 이동 명령이 발행되는 경우, **Confirm 왕복 지연(~3초)이 누적**되어 해당 OHT의 반송 처리량(throughput)이 급격히 저하되고 후방 OHT들도 연쇄적으로 정체된다.
+
+> **I-3 사례 — Sync 무한 대기로 OHT 고립**
+>
+> OHT-108이 재부팅 후 TCP는 연결되었으나 OCS의 SYNC_REQ 패킷이 네트워크 장비 장애로 유실된다. Timeout 정책이 없으면 OHT-108은 syncFlag=`0x01` 상태에서 **무한 대기** → OCS도 해당 OHT를 제어 불가로 인식하지만 재연결을 시도하지 않으므로, 수동 개입 전까지 OHT가 Rail 위에서 고립된다.
+
+> **I-4 사례 — Confirm 대기 중 Rail 점유로 후방 OHT 정체**
+>
+> OHT-073이 합류부 앞에서 CONFIRM_REQ를 OCS에 전송하지만 OCS 측 네트워크 부하로 CONFIRM_ACK가 지연된다. Timeout이 없으면 OHT-073은 합류부 진입 직전 위치에서 **무한 정지** 상태가 되며, 해당 Rail 구간을 점유하여 후방 OHT 5~10대가 연쇄 정체된다. 고밀도 운영 환경에서는 한 대의 멈춤이 Fab 전체 반송 효율에 영향을 미친다.
+
+> **I-5 사례 — 합류부 통신 단절로 OHT 충돌**
+>
+> OHT-025가 합류부 진입 중(속도 1.5m/s) OCS와 통신이 단절된다. Safe Stop 정책이 미정의 상태에서 OHT-025는 **관성에 의해 합류부를 그대로 통과**한다. 동시에 OCS는 OHT-025의 위치를 파악하지 못한 채 다른 경로의 OHT-089에 합류부 진입 명령을 발행한다. 두 OHT가 합류부에서 동시 진입하여 **물리적 충돌**이 발생한다. Safe Stop이 정의되어 있었다면 OHT-025는 단절 즉시 감속→정지하여 합류부 내부에 머무르지 않았을 것이다.
+
+### 8.2 확정 필요 파라미터
+
+| # | 파라미터 | 권고값 | 확정값 |
+|---|---------|--------|--------|
+| P-1 | Sync Timeout (SYNC_ACK 대기 시간) | 5초 | |
+| P-2 | Sync Retry 횟수 | 3회 | |
+| P-3 | Confirm Timeout (CONFIRM_ACK 대기 시간) | 3초 | |
+| P-4 | Timestamp 시각 동기화 방안 | NTP | |
+| P-5 | Heartbeat/KeepAlive 주기 | — | |
+| P-6 | 통신 단절 판정 임계치 (Heartbeat Miss 횟수) | — | |
+| P-7 | 재연결 Backoff 초기값 / 최대값 | — | |
+
+### 8.3 안전 관련 확인 사항
+
+> [!CAUTION]
+> 아래 항목은 **물리적 장비 안전**에 직결되므로 반드시 심의에서 확정하여야 합니다.
+
+| # | 항목 | 상세 |
+|---|------|------|
+| S-1 | 통신 단절 시 Safe Stop 감속 프로파일 (감속도, 정지까지 소요 시간) | |
+| S-2 | Safe Stop 후 OHT 재기동 절차 (자동 vs 수동 복구) | |
+| S-3 | 합류부 Confirm 거부 시 후속 스케줄링 정책 | |
+
+---
+
+## 부록
+
+### A. 변경 이력
+
+| 버전 | 일자 | 변경 내용 | 작성자 |
+|------|------|----------|--------|
+| 1.0 | 2026-03-09 | 초안 작성 | — |
+
+### B. 관련 문서
+
+| 문서명 | 비고 |
+|--------|------|
+| OCS-OHT 통신 프로토콜 설계 검토 보고서 | 본 명세서의 근거 분석 문서 |

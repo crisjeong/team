@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: jprm
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  # ── SMTP 메일 설정 ──
+  # 실제 SMTP 서버 정보로 교체해주세요.
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-app-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          timeout: 5000
+          connection-timeout: 5000
+
+jprm:
+  monitoring:
+    interval-ms: 1000
+    max-data-points: 3600  # 1시간분 (1초 간격)
+  threshold:
+    cpu-percent: 90.0
+    heap-percent: 85.0
+    rss-mb: 0  # 0 = disabled
+  jmx:
+    enabled: true
+    port-range-start: 9010
+    port-range-end: 9099
+  notification:
+    enabled: false           # true로 변경하면 알림 활성화
+    cooldown-seconds: 300    # 동일 알림 반복 방지 (5분)
+    email:
+      enabled: false         # true로 변경하면 이메일 발송
+      from: jprm@your-domain.com
+      to:
+        - admin@your-domain.com
+      subject-prefix: "[JPRM Alert]"
+
+logging:
+  level:
+    com.jprm: INFO

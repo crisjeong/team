@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPRM — Java Process Resource Monitor</title>
+    <meta name="description" content="Java JAR 프로세스의 CPU/메모리 사용량을 실시간으로 모니터링하는 웹 대시보드">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <span class="logo-icon">📊</span>
+                <h1>JPRM</h1>
+                <span class="logo-subtitle">Java Process Resource Monitor</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="system-info" id="systemInfo">
+                <span class="system-badge" id="systemBadge">Loading...</span>
+            </div>
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-dot disconnected"></span>
+                <span>Disconnected</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <h2 class="section-title">Monitored Processes</h2>
+                <span class="process-count" id="processCount">0</span>
+            </div>
+            <div class="toolbar-right">
+                <button class="btn btn-primary" id="btnAddJar" onclick="showModal('runModal')">
+                    <span>+</span> Add JAR
+                </button>
+                <button class="btn btn-secondary" id="btnAttachPid" onclick="showModal('attachModal')">
+                    <span>🔗</span> Attach PID
+                </button>
+                <button class="btn btn-ghost" id="btnSettings" onclick="openSettings()">
+                    <span>⚙</span> Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Process Cards -->
+        <div class="process-cards" id="processCards">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">🚀</div>
+                <h3>No processes monitored</h3>
+                <p>Click "Add JAR" to start monitoring a Java process</p>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="alerts-section" id="alertsSection" style="display: none;">
+            <div class="alerts-header">
+                <h2 class="section-title">⚠ Alerts</h2>
+                <span class="alert-count" id="alertCount">0</span>
+                <button class="btn btn-ghost btn-sm" onclick="clearAlerts()" style="margin-left:auto;">Clear</button>
+            </div>
+            <div class="alerts-list" id="alertsList"></div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section" id="chartsSection" style="display: none;">
+            <div class="charts-header">
+                <h2 class="section-title">Live Metrics</h2>
+                <div class="chart-controls">
+                    <select id="selectedProcess" class="select-process" onchange="onProcessSelect()">
+                        <option value="">Select a process...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <span>CPU Usage</span>
+                        <span class="chart-value" id="cpuValue">--%</span>
+                    </div>
+                    <canvas id="cpuChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <span>Memory (RSS)</span>
+                        <span class="chart-value" id="rssValue">-- MB</span>
+                    </div>
+                    <canvas id="rssChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <span>JVM Heap</span>
+                        <span class="chart-value" id="heapValue">-- MB</span>
+                    </div>
+                    <canvas id="heapChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <span>GC & Threads</span>
+                        <span class="chart-value" id="gcValue">--</span>
+                    </div>
+                    <canvas id="gcChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add JAR Modal -->
+    <div class="modal-overlay" id="runModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Launch JAR</h3>
+                <button class="btn-close" onclick="hideModal('runModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="jarPath">JAR File Path *</label>
+                    <input type="text" id="jarPath" placeholder="e.g., /path/to/app.jar" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="jvmOpts">JVM Options</label>
+                    <input type="text" id="jvmOpts" placeholder="e.g., -Xmx512m -Xms256m" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="appArgs">Application Arguments</label>
+                    <input type="text" id="appArgs" placeholder="e.g., --config prod.yml" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="processLabel">Label</label>
+                    <input type="text" id="processLabel" placeholder="e.g., My Service (optional)" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="hideModal('runModal')">Cancel</button>
+                <button class="btn btn-primary" id="btnSubmitRun" onclick="submitRun()">Launch</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attach PID Modal -->
+    <div class="modal-overlay" id="attachModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Attach to Process</h3>
+                <button class="btn-close" onclick="hideModal('attachModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="attachPid">Process ID (PID) *</label>
+                    <input type="number" id="attachPid" placeholder="e.g., 12345" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="attachLabel">Label</label>
+                    <input type="text" id="attachLabel" placeholder="e.g., My Server (optional)" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="hideModal('attachModal')">Cancel</button>
+                <button class="btn btn-primary" id="btnSubmitAttach" onclick="submitAttach()">Attach</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal" style="max-width:560px;">
+            <div class="modal-header">
+                <h3>⚙ Settings</h3>
+                <button class="btn-close" onclick="hideModal('settingsModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h4 style="color:var(--text-primary);margin:0 0 12px;">Threshold Settings</h4>
+                <div class="form-group">
+                    <label for="cfgCpuPercent">CPU Alert Threshold (%)</label>
+                    <input type="number" id="cfgCpuPercent" step="1" min="1" max="100" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="cfgHeapPercent">Heap Alert Threshold (%)</label>
+                    <input type="number" id="cfgHeapPercent" step="1" min="1" max="100" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="cfgRssMb">RSS Alert Threshold (MB, 0=disabled)</label>
+                    <input type="number" id="cfgRssMb" step="1" min="0" class="form-input">
+                </div>
+
+                <hr style="border-color:var(--border-color);margin:20px 0;">
+                <h4 style="color:var(--text-primary);margin:0 0 12px;">📧 Email Notification</h4>
+                <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+                    <label for="cfgNotifyEnabled" style="margin:0;flex:1;">Enable Notification</label>
+                    <input type="checkbox" id="cfgNotifyEnabled" style="width:20px;height:20px;">
+                </div>
+                <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+                    <label for="cfgEmailEnabled" style="margin:0;flex:1;">Enable Email</label>
+                    <input type="checkbox" id="cfgEmailEnabled" style="width:20px;height:20px;">
+                </div>
+                <div class="form-group">
+                    <label for="cfgEmailTo">Recipients (comma separated)</label>
+                    <input type="text" id="cfgEmailTo" placeholder="admin@company.com, ops@company.com" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="cfgCooldown">Cooldown (seconds)</label>
+                    <input type="number" id="cfgCooldown" step="1" min="10" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="hideModal('settingsModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
